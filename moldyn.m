@@ -76,7 +76,7 @@ F0 = force_ij(1.22); % !!!!!!!!!!!!!!!check this
 %the F0 terms in the following part they represent the cutoff. since we
 %have a E-12 decaying potential, the cutoff is really not neccecary.
 
-for i = 2 : N-1       %this is becasue 
+for i = 1 : N       %this is becasue 
     for j = i+2 : N
         
         dist = 0.0;
