@@ -76,7 +76,7 @@ F0 = force_ij(1.22); % !!!!!!!!!!!!!!!check this
 %the F0 terms in the following part they represent the cutoff. since we
 %have a E-12 decaying potential, the cutoff is really not neccecary.
 
-for i = 1 : N       %this is becasue 
+for i = 1 : N       
     for j = i+2 : N
         
         dist = 0.0;
@@ -113,39 +113,43 @@ for i = 1 : N       %this is becasue
 end
 
 % force between two immediate linked molecules
-dr = zeros(3,1);
+dr1= zeros(3,1);
+dr2= zeros(3,1);
 potential = 0;
 F2 = flink_func(1.22);
 
-for i = 1 : N-1
+for i = 2 : N-1
     nxt = i+1;
-    dist = 0.0;
+    prev= i-1;
+    dist1 = 0.0;
+    dist2 = 0.0;
         
         for k = 1 : 3
             
-            dr(k) = pos2(i,k) - pos2(nxt,k);
+            dr1(k) = pos2(i,k) - pos2(nxt,k);
+            dr1(k) = pos2(i,k) - pos2(prev,k);
             
-           if(dr(k) > L/2)         %PBC
-               dr(k) = dr(k) - L;
+           if(dr1(k) > L/2)         %PBC
+               dr1(k) = dr1(k) - L;
            end
            
-           if(dr(k) < -L/2)
-               dr(k) = dr(k) + L;
+           if(dr1(k) < -L/2)
+               dr1(k) = dr1(k) + L;
            end
             
-            dist = dist + dr(k)*dr(k);
+            dist1 = dist1 + dr1(k)*dr1(k);
         end
         
-        dist = power(dist,0.5);
+        dist1 = power(dist1,0.5);
         
-        if (dist <= 101)
+        if (dist1 <= 101)
             
-            potential = potential + plink_func(dist); %+ F2*dist;
-            F = flink_func(dist) ;% - F2;
+            potential = potential + plink_func(dist1); %+ F2*dist;
+            F = flink_func(dist1) ;% - F2;
            
             for k = 1 : 3
-                f_link(i,k) = f_link(i,k) + F*dr(k)/dist;
-                f_link(nxt,k) = f_link(nxt,k) - F*dr(k)/dist;   % because Fji = -Fij
+                f_link(i,k) = f_link(i,k) + F*dr(k)/dist1;
+                f_link(nxt,k) = f_link(nxt,k) - F*dr(k)/dist1;   % because Fji = -Fij
             end
         end
         
