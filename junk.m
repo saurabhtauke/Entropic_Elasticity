@@ -42,7 +42,7 @@ end
  
  count = 1;
  
- for r = 1:N1d
+ for r = 1:N1d          %to make the polymer snakelike
      
      if (mod(r,2)==1)
          
