@@ -10,7 +10,7 @@ F0 = force_ij(1.22); % !!!!!!!!!!!!!!!check this
 %have a E-12 decaying potential, th ecutoff is really not neccecary.
 
 for i = 1 : N
-    for j = i+2 : N
+    for j = 1 : N
         
         dist = 0.0;
         
@@ -31,7 +31,10 @@ for i = 1 : N
         
         dist = power(dist,0.5);
         
-        if (dist <= 101)
+        
+        if (i==j)
+        
+        elif (dist <= 101)  %The cutoff distance
             
             potential = potential + potential_ij(dist); % + F0*dist;
             F = force_ij(dist); % - F0;
