@@ -17,8 +17,8 @@ pos2 = zeros(N,3);               %array of position coordinates stored as X,Y,
 
 f_link = zeros(N,3);             %force between two consecutive particles
 
-dt = 0.001;                                         % time step
-iter = 1000;                                        % number of simulations
+dt = 0.0001;                                         % time step
+iter = 10000;                                        % number of simulations
 
 
 %% initialized positions
@@ -42,7 +42,7 @@ end
  
  count = 1;
  
- for r = 1:N1d          %to make the polymer snakelike
+ for r = 1:N1d
      
      if (mod(r,2)==1)
          
@@ -71,7 +71,7 @@ end
  %% Initialize Velocity
 
 for i = 1 : 3*N
-    velocity(i) = (12^0.5)*(rand-0.5);
+    velocity(i) = (5)*(rand-0.5);
 end
 
 vx = sum(velocity(:,1));
@@ -83,21 +83,26 @@ for i = 1 : N
     velocity(i,2) =  velocity(i,2) - (vy/N);
     velocity(i,3) =  velocity(i,3) - (vz/N);
 end
- %% evaluation of forces
+%% evaluation of forces
 
- % for force between two  non-linked molecules (i and i+2) 
+ 
 dr = zeros(3,1);
 potential = 0;
 
 F0 = force_ij(1.22); % !!!!!!!!!!!!!!!check this
+F2 = flink_func(1.22);
+
 %.... have %commented out
 %the F0 terms in the following part they represent the cutoff. since we
 %have a E-12 decaying potential, th ecutoff is really not neccecary.
 
+
+
+
 for i = 1 : N
-    for j = i+2 : N
+    for j = 1 : N
         
-        dist = 0.0;
+        dist = 0.0;  %  calculating the distance
         
         for k = 1 : 3
             
@@ -116,7 +121,22 @@ for i = 1 : N
         
         dist = power(dist,0.5);
         
-        if (dist <= 101)
+        dindex= abs(i-j);
+        
+        if (dindex==0)
+            force(i,k) =  0;
+            force(j,k) =  0;
+                
+        elseif (dindex==1)            % force between two immediate linked molecules
+            
+            potential = potential + plink_func(dist); %+ F2*dist;
+            F = flink_func(dist) ;% - F2;
+           
+            for k = 1 : 3
+                f_link(i,k) = f_link(i,k) + F*dr(k)/dist;
+                f_link(j,k) = f_link(j,k) - F*dr(k)/dist;   % because Fji = -Fij
+            end
+        elseif (dindex > 1 && dist <= 100)       % for force between two  non-linked molecules (i and i+2)  and   %The cutoff distance  
             
             potential = potential + potential_ij(dist); % + F0*dist;
             F = force_ij(dist); % - F0;
@@ -130,45 +150,6 @@ for i = 1 : N
     end
 end
 
-% force between two immediate linked molecules
-dr = zeros(3,1);
-potential = 0;
-F2 = flink_func(1.22);
-
-for i = 1 : N-1
-    nxt = i+1;
-    dist = 0.0;
-        
-        for k = 1 : 3
-            
-            dr(k) = pos2(i,k) - pos2(nxt,k);
-            
-           if(dr(k) > L/2)                   %PBC
-               dr(k) = dr(k) - L;
-           end
-           
-           if(dr(k) < -L/2)
-               dr(k) = dr(k) + L;
-           end
-            
-            dist = dist + dr(k)*dr(k);
-        end
-        
-        dist = power(dist,0.5);
-        
-        if (dist <= 101)
-            
-            potential = potential + plink_func(dist); %+ F2*dist;
-            F = flink_func(dist) ;% - F2;
-           
-            for k = 1 : 3
-                f_link(i,k) = f_link(i,k) + F*dr(k)/dist;
-                f_link(nxt,k) = f_link(nxt,k) - F*dr(k)/dist;   % because Fji = -Fij
-            end
-        end
-        
-end      
-
 %force
 %f_link
 
@@ -178,126 +159,108 @@ total_E = zeros(iter,1);
 
 for z = 1 : iter
 
-    z;
-old_force = force;
+        z;
+    old_force = force;
 
-for i = 1 : N
-    
-    for j = 1 : 3
-        
-        pos2(i,j) = pos2(i,j) + velocity(i,j)*dt + 0.5*force(i,j)*dt*dt;       
-        
-    end
-end
+    for i = 1 : N
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-%force calculation for non-linked units
-dr = zeros(3,1);
-potential = 0;
-force = zeros(N,3);
-
-%.... have %commented out
-%the F0 terms in the following part they represent the cutoff. since we
-%have a E-12 decaying potential, th ecutoff is really not neccecary.
-
-for i = 1 : N                          % CAREFUL ! we have not yet merged the two force arrays !!!!!
-    for j = i+2 : N                  % have to be i+2 because we have i+1 linked with different restoring force
-                                      % we also are not calculating the
-                                      % force between two successive units
-        dist = 0.0;
-        
-        for k = 1 : 3
-            
-            dr(k) = pos2(i,k) - pos2(j,k);
-            
-            if(dr(k) > L/2)                  %PBC
-               dr(k) = dr(k) - L;
-           end
-           
-           if(dr(k) < -L/2)
-               dr(k) = dr(k) + L;
-           end
-           
-            dist = dist + dr(k)*dr(k);
-        end
-        
-        dist = power(dist,0.5);
-        
-        if (dist <= 101)     %101 was just a cutoff for earlier calculation. it can be set to any value now depending on your cutofff interaction distance
-            
-            potential = potential + potential_ij(dist); %+ F0*dist;
-            F = force_ij(dist); %- F0;
-            
-            for k = 1 : 3
-                force(i,k) = force(i,k) + F*dr(k)/dist;
-                force(j,k) = force(j,k) - F*dr(k)/dist;
-            end
-        end
-        
-    end
-end
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%force calculation for linked units
-dr = zeros(3,1);
-potential = 0;
-F2 = flink_func(1.22);
-
-for i = 1 : N-1
-    nxt = i+1;
-    dist = 0.0;
-        
-        for k = 1 : 3
-            
-            dr(k) = pos2(i,k) - pos2(nxt,k);
-            
-            if(dr(k) > L/2)                  %PBC
-               dr(k) = dr(k) - L;
-           end
-           
-           if(dr(k) < -L/2)
-               dr(k) = dr(k) + L;
-           end
-            
-            dist = dist + dr(k)*dr(k);
-        end
-        
-        dist = power(dist,0.5);
-        
-        if (dist <= 101)
-            
-            potential = potential + plink_func(dist); %+ F2*dist;
-            F = flink_func(dist) ;% - F2;
-           
-            for k = 1 : 3
-                f_link(i,k) = f_link(i,k) + F*dr(k)/dist;
-                f_link(nxt,k) = f_link(nxt,k) - F*dr(k)/dist;   % because Fji = -Fij
-            end
-        end
-        
-end      
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-kinetic = 0;
-
-for i = 1 : N
         for j = 1 : 3
-            
-            velocity(i,j) = velocity(i,j) + 0.5*(force(i,j) + old_force(i,j))*dt;
-            kinetic = kinetic + 0.5*power(velocity(i,j),2);
-        end     
-end
 
-total_E(z) = potential + kinetic;
+            pos2(i,j) = pos2(i,j) + velocity(i,j)*dt + 0.5*force(i,j)*dt*dt;       
+
+        end
+    end
+
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 
- if(rem(i,5) == 0)
-      
-      plot3(pos2(:,1), pos2(:,2), pos2(:,3))
-      pause(0.00005)
-      
-  end
+    dr = zeros(3,1);
+    potential = 0;
+
+    force = zeros(N,3);
+
+    for i = 1 : N
+        for j = 1 : N
+
+
+            dist = 0.0;
+
+            for k = 1 : 3
+
+                dr(k) = pos2(i,k) - pos2(j,k);
+
+               if(dr(k) > L/2)                  %PBC
+                   dr(k) = dr(k) - L;
+               end
+
+               if(dr(k) < -L/2)
+                   dr(k) = dr(k) + L;
+               end
+
+                dist = dist + dr(k)*dr(k);
+            end
+
+            dist = power(dist,0.5);        %this is the distance between ith and jth molecules
+
+            dindex= abs(i-j);
+
+            % same force calculation code as above but THE FORCE ARRAY AND
+            % FLINK ARRAY HAVE BEEN MERGED INTO FORCE ARRAY
+
+            if (dindex==0)
+                force(i,k) =  0;
+                force(j,k) =  0;
+
+            elseif (dindex==1)            % force between two immediate linked molecules
+                 
+                F2 = flink_func(1.22);
+                potential = potential + plink_func(dist); %+ F2*dist;
+                F = flink_func(dist) ;% - F2;
+
+                for k = 1 : 3
+                    force(i,k) = force(i,k) + F*dr(k)/dist;
+                    force(j,k) = force(j,k) - F*dr(k)/dist;   % because Fji = -Fij
+                end
+
+            elseif (dindex > 1 && dist <= 100)       % for force between two  non-linked molecules (i and i+2)  and   %The cutoff distance  
+                
+                F0 = force_ij(1.22);
+                potential = potential + potential_ij(dist); % + F0*dist;
+                F = force_ij(dist); % - F0;
+
+                for k = 1 : 3
+                    force(i,k) = force(i,k) + F*dr(k)/dist;
+                    force(j,k) = force(j,k) - F*dr(k)/dist;   % because Fji = -Fij
+                end
+
+            end
+        end
+    end
+
+
+
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+    kinetic = 0;
+
+    for i = 1 : N
+            for j = 1 : 3
+
+                velocity(i,j) = velocity(i,j) + 0.5*(force(i,j) + old_force(i,j))*dt;
+                kinetic = kinetic + 0.5*power(velocity(i,j),2);
+            end     
+    end
+
+    total_E(z) = potential + kinetic;
+
+
+     if(rem(i,5) == 0)
+
+          plot3(pos2(:,1), pos2(:,2), pos2(:,3))
+          pause(0.000005)
+
+     end
 
 end
 figure
