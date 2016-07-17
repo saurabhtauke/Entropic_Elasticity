@@ -1,5 +1,5 @@
 clc
-% Saurabh Talele entropic elasticity code
+
 
 %% initialization Values
 
@@ -17,8 +17,8 @@ pos2 = zeros(N,3);               %array of position coordinates stored as X,Y,
 
 f_link = zeros(N,3);             %force between two consecutive particles
 
-dt = 0.0001;                                         % time step
-iter = 10000;                                        % number of simulations
+dt = 0.00001;                                         % time step
+iter = 100000;                                        % number of simulations
 
 
 %% initialized positions
@@ -69,27 +69,20 @@ end
  %return
  
  %% Initialize Velocity
-
+ 
 for i = 1 : 3*N
-    velocity(i) = (5)*(rand-0.5);
+       % for j = 1 : 3
+            velocity(i) = (rand-0.5);
+        %end
 end
 
-vx = sum(velocity(:,1));
-vy = sum(velocity(:,2));
-vz = sum(velocity(:,3));
 
-for i = 1 : N
-    velocity(i,1) =  velocity(i,1) - (vx/N);
-    velocity(i,2) =  velocity(i,2) - (vy/N);
-    velocity(i,3) =  velocity(i,3) - (vz/N);
-end
 %% evaluation of forces
 
- 
 dr = zeros(3,1);
 potential = 0;
 
-F0 = force_ij(3); % !!!!!!!!!!!!!!!check this
+F0 = force_ij(1.33); % !!!!!!!!!!!!!!!check this
 %F2 = flink_func(1.22);
 
 %.... have %commented out
@@ -108,13 +101,13 @@ for i = 1 : N
             
             dr(k) = pos2(i,k) - pos2(j,k);
             
-           if(dr(k) > L/2)               %PBC
-               dr(k) = dr(k) - L;
-           end
+%            if(dr(k) > L/2)               %PBC
+%                dr(k) = dr(k) - L;
+%            end
            
-           if(dr(k) < -L/2)
-               dr(k) = dr(k) + L;
-           end
+%            if(dr(k) < -L/2)
+%                dr(k) = dr(k) + L;
+%            end
             
             dist = dist + dr(k)*dr(k);
         end
@@ -158,7 +151,7 @@ end
 total_E = zeros(iter,1);
 
 for z = 1 : iter
-
+    
         z;
     old_force = force;
 
@@ -189,13 +182,13 @@ for z = 1 : iter
 
                 dr(k) = pos2(i,k) - pos2(j,k);
 
-               if(dr(k) > L/2)                  %PBC
-                   dr(k) = dr(k) - L;
-               end
-
-               if(dr(k) < -L/2)
-                   dr(k) = dr(k) + L;
-               end
+%                if(dr(k) > L/2)                  %PBC
+%                    dr(k) = dr(k) - L;
+%                end
+% 
+%                if(dr(k) < -L/2)
+%                    dr(k) = dr(k) + L;
+%                end
 
                 dist = dist + dr(k)*dr(k);
             end
@@ -214,7 +207,7 @@ for z = 1 : iter
             elseif (dindex==1)            % force between two immediate linked molecules
                  
                 F2 = flink_func(1.22);
-                potential = potential + plink_func(dist); %+ F2*dist;
+                potential = potential + plink_func(dist); 
                 F = flink_func(dist) ;% - F2;
 
                 for k = 1 : 3
@@ -222,16 +215,21 @@ for z = 1 : iter
                     force(j,k) = force(j,k) - F*dr(k)/dist;   % because Fji = -Fij
                 end
 
-            elseif (dindex > 1 && dist <= 100)       % for force between two  non-linked molecules (i and i+2)  and   %The cutoff distance  
+            elseif (dindex > 1 && dist <= 1.33)       % for force between two  non-linked molecules (i and i+2)  and   %The cutoff distance  
                 
-                F0 = force_ij(1.22);
-                potential = potential + potential_ij(dist); % + F0*dist;
-                F = force_ij(dist); % - F0;
+%                 F0 = force_ij(1.33);
+%                 potential = potential + potential_ij(dist) + F0*dist;
+%                 F = force_ij(dist) - F0;
+% 
+%                 for k = 1 : 3
+%                     force(i,k) = force(i,k) + F*dr(k)/dist;
+%                     force(j,k) = force(j,k) - F*dr(k)/dist;   % because Fji = -Fij
+%                 end
 
-                for k = 1 : 3
-                    force(i,k) = force(i,k) + F*dr(k)/dist;
-                    force(j,k) = force(j,k) - F*dr(k)/dist;   % because Fji = -Fij
-                end
+                  for k = 1 : 3
+                    force(i,k) = 0;
+                    force(j,k) = 0;
+                  end
 
             end
         end
@@ -255,13 +253,16 @@ for z = 1 : iter
     total_E(z) = potential + kinetic;
 
 
-     if(rem(i,5) == 0)
+%      if(rem(i,5) == 0)
+% 
+%           plot3(pos2(:,1), pos2(:,2), pos2(:,3))
+%           pause(0.000005)
+% 
+%      end
 
-          plot3(pos2(:,1), pos2(:,2), pos2(:,3))
-          pause(0.000005)
 
-     end
 
 end
 figure
+plot3(pos2(:,1), pos2(:,2), pos2(:,3))
 plot(total_E/N)
