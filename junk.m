@@ -72,9 +72,17 @@ end
  %% Initialize Velocity
  
 for i = 1 : 3*N
-       % for j = 1 : 3
-            velocity(i) = (rand-0.5);
-        %end
+    velocity(i) = (5)*(rand-0.5);
+end
+
+vx = sum(velocity(:,1));
+vy = sum(velocity(:,2));
+vz = sum(velocity(:,3));
+
+for i = 1 : N
+    velocity(i,1) =  velocity(i,1) - (vx/N);
+    velocity(i,2) =  velocity(i,2) - (vy/N);
+    velocity(i,3) =  velocity(i,3) - (vz/N);
 end
 
 
