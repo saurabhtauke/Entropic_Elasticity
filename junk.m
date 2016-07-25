@@ -1,5 +1,6 @@
 clc
 
+% SaurabhTauke
 
 %% initialization Values
 
@@ -17,8 +18,8 @@ pos2 = zeros(N,3);               %array of position coordinates stored as X,Y,
 
 f_link = zeros(N,3);             %force between two consecutive particles
 
-dt = 0.00001;                                         % time step
-iter = 100000;                                        % number of simulations
+dt = 0.0001;                                         % time step
+iter = 1000;                                        % number of simulations
 
 
 %% initialized positions
@@ -205,31 +206,37 @@ for z = 1 : iter
                 force(j,k) =  0;
 
             elseif (dindex==1)            % force between two immediate linked molecules
-                 
-                F2 = flink_func(1.22);
-                potential = potential + plink_func(dist); 
-                F = flink_func(dist) ;% - F2;
+                
+%                 F2 = flink_func(1.22);
+%                 potential = potential + plink_func(dist); 
+%                 F = flink_func(dist) ;% - F2;
+% 
+%                 for k = 1 : 3
+%                     force(i,k) = force(i,k) + F*dr(k)/dist;
+%                     force(j,k) = force(j,k) - F*dr(k)/dist;   % because Fji = -Fij
+%                 end
+                
+
+                for k = 1 : 3
+                    force(i,k) = 0;
+                    force(j,k) = 0;   % because Fji = -Fij
+                end
+
+            elseif (dindex > 1 && dist <= 1.33)       % for force between two  non-linked molecules (i and i+2)  and   %The cutoff distance  
+                
+                F0 = force_ij(1.33);
+                potential = potential + potential_ij(dist) + F0*dist;
+                F = force_ij(dist) - F0;
 
                 for k = 1 : 3
                     force(i,k) = force(i,k) + F*dr(k)/dist;
                     force(j,k) = force(j,k) - F*dr(k)/dist;   % because Fji = -Fij
                 end
 
-            elseif (dindex > 1 && dist <= 1.33)       % for force between two  non-linked molecules (i and i+2)  and   %The cutoff distance  
-                
-%                 F0 = force_ij(1.33);
-%                 potential = potential + potential_ij(dist) + F0*dist;
-%                 F = force_ij(dist) - F0;
-% 
-%                 for k = 1 : 3
-%                     force(i,k) = force(i,k) + F*dr(k)/dist;
-%                     force(j,k) = force(j,k) - F*dr(k)/dist;   % because Fji = -Fij
-%                 end
-
-                  for k = 1 : 3
-                    force(i,k) = 0;
-                    force(j,k) = 0;
-                  end
+%                   for k = 1 : 3
+%                     force(i,k) = 0;
+%                     force(j,k) = 0;
+%                   end
 
             end
         end
@@ -251,8 +258,12 @@ for z = 1 : iter
     end
 
     total_E(z) = potential + kinetic;
+    Temp = 2.0 * kinetic/ (N*3);
+    chi = sqrt(300/Temp);
+    %velocity = chi*velocity + 0.5*dt*acc    % acc ?????
+    
 
-
+%      % for making the movie
 %      if(rem(i,5) == 0)
 % 
 %           plot3(pos2(:,1), pos2(:,2), pos2(:,3))
