@@ -255,21 +255,55 @@ for z = 1 : iter
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 
-    kinetic = 0;
+    %  kinetic = 0;
+    %
+    %   for i = 1 : N
+    %          for j = 1 : 3
+    %
+    %               velocity(i,j) = velocity(i,j) + 0.5*(force(i,j) + old_force(i,j))*dt;
+    %              kinetic = kinetic + 0.5*power(velocity(i,j),2);
+    %         end     
+    %end
 
-    for i = 1 : N
+    % total_E(z) = potential + kinetic;
+    %Temp = 2.0 * kinetic/ (N*3);
+    %chi = sqrt(300/Temp);
+    %velocity = chi*velocity + 0.5*dt*acc    % acc ?????
+    
+v_sqr = 0.0;
+
+for i = 1 : N
+    vtemp = 0.0;
             for j = 1 : 3
 
                 velocity(i,j) = velocity(i,j) + 0.5*(force(i,j) + old_force(i,j))*dt;
-                kinetic = kinetic + 0.5*power(velocity(i,j),2);
-            end     
+	    	    vtemp = vtemp + (velocity(i,j)*velocity(i,j));
+            end  
+    	v_sqr = v_sqr + vtemp;   
     end
 
-    total_E(z) = potential + kinetic;
-    Temp = 2.0 * kinetic/ (N*3);
-    chi = sqrt(300/Temp);
-    %velocity = chi*velocity + 0.5*dt*acc    % acc ?????
-    
+temperature = v_sqr/(N*3.0);
+	
+
+If (mod(z,500) == 0)
+		
+                velocity = velocity .* (sqrt(1/temp));
+
+                v_sqr = 0.0;
+			for i = 1 : N
+				vtemp = 0.0;
+
+            		for j = 1 : 3
+						vtemp = vtemp + (velocity(i,j)*velocity(i,j));
+            		end 
+ 
+				v_sqr = v_sqr + vtemp;   
+    		end
+                temperature = v_sqr/(N*3.0);
+end
+
+
+total_energy = (potential + (0.5*v_sqr))/(N)
 
 %      % for making the movie
 %      if(rem(i,5) == 0)
@@ -278,7 +312,6 @@ for z = 1 : iter
 %           pause(0.000005)
 % 
 %      end
-
 
 
 end
