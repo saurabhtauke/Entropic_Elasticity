@@ -19,9 +19,9 @@ pos2 = zeros(N,3);               %array of position coordinates stored as X,Y,
 f_link = zeros(N,3);             %force between two consecutive particles
 
 dt = 0.0001;                                         % time step
-iter = 1000;                                        % number of simulations
+iter = 100000;                                        % number of simulations
 
-
+total_energy = zeros(iter,1);    % had to  pre-allocate ... can be allocated in the force iteration loop tho.
 %% initialized positions
 
 h = L/(N1d); % spacing between atoms
@@ -110,13 +110,13 @@ for i = 1 : N
             
             dr(k) = pos2(i,k) - pos2(j,k);
             
-%            if(dr(k) > L/2)               %PBC
-%                dr(k) = dr(k) - L;
-%            end
+           if(dr(k) > L/2)               %PBC
+               dr(k) = dr(k) - L;
+           end
            
-%            if(dr(k) < -L/2)
-%                dr(k) = dr(k) + L;
-%            end
+           if(dr(k) < -L/2)
+               dr(k) = dr(k) + L;
+           end
             
             dist = dist + dr(k)*dr(k);
         end
@@ -157,8 +157,6 @@ end
 
 %% Force Iteration
 
-total_E = zeros(iter,1);
-
 for z = 1 : iter
     
         z;
@@ -191,13 +189,13 @@ for z = 1 : iter
 
                 dr(k) = pos2(i,k) - pos2(j,k);
 
-%                if(dr(k) > L/2)                  %PBC
-%                    dr(k) = dr(k) - L;
-%                end
-% 
-%                if(dr(k) < -L/2)
-%                    dr(k) = dr(k) + L;
-%                end
+               if(dr(k) > L/2)                  %PBC
+                   dr(k) = dr(k) - L;
+               end
+
+               if(dr(k) < -L/2)
+                   dr(k) = dr(k) + L;
+               end
 
                 dist = dist + dr(k)*dr(k);
             end
@@ -215,20 +213,20 @@ for z = 1 : iter
 
             elseif (dindex==1)            % force between two immediate linked molecules
                 
-%                 F2 = flink_func(1.22);
-%                 potential = potential + plink_func(dist); 
-%                 F = flink_func(dist) ;% - F2;
-% 
-%                 for k = 1 : 3
-%                     force(i,k) = force(i,k) + F*dr(k)/dist;
-%                     force(j,k) = force(j,k) - F*dr(k)/dist;   % because Fji = -Fij
-%                 end
-                
+                F2 = flink_func(1.22);
+                potential = potential + plink_func(dist); 
+                F = flink_func(dist) ;% - F2;
 
                 for k = 1 : 3
-                    force(i,k) = 0;
-                    force(j,k) = 0;   % because Fji = -Fij
+                    force(i,k) = force(i,k) + F*dr(k)/dist;
+                    force(j,k) = force(j,k) - F*dr(k)/dist;   % because Fji = -Fij
                 end
+                
+
+%                 for k = 1 : 3
+%                     force(i,k) = 0;
+%                     force(j,k) = 0;   % because Fji = -Fij
+%                 end
 
             elseif (dindex > 1 && dist <= 1.33)       % for force between two  non-linked molecules (i and i+2)  and   %The cutoff distance  
                 
@@ -255,21 +253,45 @@ for z = 1 : iter
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 
-    kinetic = 0;
+    %  kinetic = 0;
+    %
+     
+    
+v_sqr = 0.0;
 
-    for i = 1 : N
+for i = 1 : N
+    vtemp = 0.0;
             for j = 1 : 3
 
                 velocity(i,j) = velocity(i,j) + 0.5*(force(i,j) + old_force(i,j))*dt;
-                kinetic = kinetic + 0.5*power(velocity(i,j),2);
-            end     
-    end
+	    	    vtemp = vtemp + (velocity(i,j)*velocity(i,j));
+            end  
+    	v_sqr = v_sqr + vtemp;   
+end
 
-    total_E(z) = potential + kinetic;
-    Temp = 2.0 * kinetic/ (N*3);
-    chi = sqrt(300/Temp);
-    %velocity = chi*velocity + 0.5*dt*acc    % acc ?????
-    
+temperature = v_sqr/(N*3.0);
+	
+
+if (mod(z,500) == 0)
+		
+                velocity = velocity .* (sqrt(1/temperature));
+
+                v_sqr = 0.0;
+            for i = 1 : N
+				vtemp = 0.0;
+
+            		for j = 1 : 3
+						vtemp = vtemp + (velocity(i,j)*velocity(i,j));
+            		end 
+ 
+				v_sqr = v_sqr + vtemp;   
+            end
+                z
+                temperature = v_sqr/(N*3.0)
+end
+
+
+total_energy(z) = (potential + (0.5*v_sqr))/(N);
 
 %      % for making the movie
 %      if(rem(i,5) == 0)
@@ -279,9 +301,7 @@ for z = 1 : iter
 % 
 %      end
 
-
-
 end
+
 figure
-plot3(pos2(:,1), pos2(:,2), pos2(:,3))
-plot(total_E/N)
+plot(total_energy/N)
