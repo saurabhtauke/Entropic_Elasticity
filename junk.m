@@ -42,7 +42,7 @@ end
  %return
  
  count = 1;
- 
+ % making the chain snake like
  for r = 1:N1d
      
      if (mod(r,2)==1)
@@ -95,10 +95,6 @@ F0 = force_ij(1.33); % !!!!!!!!!!!!!!!check this
 %F2 = flink_func(1.22);
 
 %.... have %commented out
-%the F0 terms in the following part they represent the cutoff. since we
-%have a E-12 decaying potential, th ecutoff is really not neccecary.
-
-
 
 
 for i = 1 : N
