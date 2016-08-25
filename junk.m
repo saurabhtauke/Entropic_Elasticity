@@ -19,7 +19,7 @@ pos2 = zeros(N,3);               %array of position coordinates stored as X,Y,
 f_link = zeros(N,3);             %force between two consecutive particles
 
 dt = 0.0001;                                         % time step
-iter = 100000;                                        % number of simulations
+iter = 100000;                                        % number of iterations in simulation
 
 total_energy = zeros(iter,1);    % had to  pre-allocate ... can be allocated in the force iteration loop tho.
 %% initialized positions
@@ -42,7 +42,7 @@ end
  %return
  
  count = 1;
- % making the chain snake like
+ 
  for r = 1:N1d
      
      if (mod(r,2)==1)
@@ -86,6 +86,21 @@ for i = 1 : N
 end
 
 
+% making tempearture equal to 1
+v_sqr = 0.0;
+
+for i = 1 : N
+    vtemp = 0.0;
+            for j = 1 : 3
+	    	    vtemp = vtemp + (velocity(i,j)*velocity(i,j));
+            end  
+    	v_sqr = v_sqr + vtemp;   
+end
+
+temperature = v_sqr/(N*3.0);
+velocity = velocity .* (sqrt(1/temperature));
+
+
 %% evaluation of forces
 
 dr = zeros(3,1);
@@ -95,6 +110,10 @@ F0 = force_ij(1.33); % !!!!!!!!!!!!!!!check this
 %F2 = flink_func(1.22);
 
 %.... have %commented out
+%the F0 terms in the following part they represent the cutoff. since we
+%have a E-12 decaying potential, th ecutoff is really not neccecary.
+
+
 
 
 for i = 1 : N
@@ -106,13 +125,13 @@ for i = 1 : N
             
             dr(k) = pos2(i,k) - pos2(j,k);
             
-           if(dr(k) > L/2)               %PBC
-               dr(k) = dr(k) - L;
-           end
-           
-           if(dr(k) < -L/2)
-               dr(k) = dr(k) + L;
-           end
+%            if(dr(k) > L/2)               %PBC
+%                dr(k) = dr(k) - L;
+%            end
+%            
+%            if(dr(k) < -L/2)
+%                dr(k) = dr(k) + L;
+%            end
             
             dist = dist + dr(k)*dr(k);
         end
@@ -185,13 +204,13 @@ for z = 1 : iter
 
                 dr(k) = pos2(i,k) - pos2(j,k);
 
-               if(dr(k) > L/2)                  %PBC
-                   dr(k) = dr(k) - L;
-               end
-
-               if(dr(k) < -L/2)
-                   dr(k) = dr(k) + L;
-               end
+%                if(dr(k) > L/2)                  %PBC
+%                    dr(k) = dr(k) - L;
+%                end
+% 
+%                if(dr(k) < -L/2)
+%                    dr(k) = dr(k) + L;
+%                end
 
                 dist = dist + dr(k)*dr(k);
             end
@@ -226,19 +245,19 @@ for z = 1 : iter
 
             elseif (dindex > 1 && dist <= 1.33)       % for force between two  non-linked molecules (i and i+2)  and   %The cutoff distance  
                 
-                F0 = force_ij(1.33);
-                potential = potential + potential_ij(dist) + F0*dist;
-                F = force_ij(dist) - F0;
+%                 F0 = force_ij(1.33);
+%                 potential = potential + potential_ij(dist) + F0*dist;
+%                 F = force_ij(dist) - F0;
+% 
+%                 for k = 1 : 3
+%                     force(i,k) = force(i,k) + F*dr(k)/dist;
+%                     force(j,k) = force(j,k) - F*dr(k)/dist;   % because Fji = -Fij
+%                 end
 
-                for k = 1 : 3
-                    force(i,k) = force(i,k) + F*dr(k)/dist;
-                    force(j,k) = force(j,k) - F*dr(k)/dist;   % because Fji = -Fij
-                end
-
-%                   for k = 1 : 3
-%                     force(i,k) = 0;
-%                     force(j,k) = 0;
-%                   end
+                  for k = 1 : 3
+                    force(i,k) = 0;
+                    force(j,k) = 0;
+                  end
 
             end
         end
@@ -289,13 +308,16 @@ end
 
 total_energy(z) = (potential + (0.5*v_sqr))/(N);
 
-%      % for making the movie
-%      if(rem(i,5) == 0)
-% 
-%           plot3(pos2(:,1), pos2(:,2), pos2(:,3))
-%           pause(0.000005)
-% 
-%      end
+     % for making the movie
+     if(mod(z,100) == 0)
+
+          plot3(pos2(:,1), pos2(:,2), pos2(:,3),'o-b')
+          xlim([-2,12])
+          ylim([-2,12])
+          zlim([-5,5])
+          pause(0.000005)
+
+     end
 
 end
 
