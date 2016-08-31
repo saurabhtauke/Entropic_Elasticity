@@ -83,9 +83,9 @@ end
 
 
 hold on
-%plot (position, time,'b+')
-%plot (velocity,time,'rO')
-plot (kinetic,time,'g*')
-plot (potential,time,'r-')
-plot (tot_E,time,'b-')
+%plot ( time,position,'b+')
+%plot (time,velocity,'rO')
+plot (time,kinetic,'g*')
+plot (time,potential,'r-')
+plot (time,tot_E,'b-')
 hold off
