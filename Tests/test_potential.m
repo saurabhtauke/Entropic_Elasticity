@@ -66,32 +66,26 @@ for i = 1:iter;
     v_nxt = v + (0.5*(f0 + f_nxt) *dt);     % STEP 3
     
     
-    position(count,1) = abs(x-2);
-    velocity(count,1) = v;
+    position(count) = abs(x-2);
+    velocity(count) = v;
     
-    kinetic(count,1) = 0.5* (velocity(count,1)^2);
-    potential(count,1) = 0.5 *(position(count,1)^2);
-    tot_E(count,1) = kinetic(count,1) + potential(count,1);
+    kinetic(count) = 0.5* (velocity(count)^2);
+    potential(count) = 0.5 *(position(count)^2);
+    tot_E(count) = kinetic(count) + potential(count);
     
     % update position and velocity
     x = x_nxt;
     v = v_nxt;
-    
-    position(count,2) = t;
-    velocity(count,2) = t;
-    kinetic(count,2) = t;
-    potential(count,2) = t;
-    tot_E(count,2) = t;
-    
-    
+   
+    time(count) = t;
     t = t + dt;
 end
 
 
 hold on
-%plot (position(:,2),position(:,1),'b+')
-%plot (velocity(:,2),velocity(:,1),'rO')
-plot (kinetic(:,2),kinetic(:,1),'g*')
-plot (potential(:,2),potential(:,1),'r-')
-plot (tot_E(:,2),tot_E(:,1),'b-')
+%plot (position, time,'b+')
+%plot (velocity,time,'rO')
+plot (kinetic,time,'g*')
+plot (potential,time,'r-')
+plot (tot_E,time,'b-')
 hold off
