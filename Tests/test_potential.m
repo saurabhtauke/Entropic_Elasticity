@@ -15,11 +15,13 @@ force = 0;              %force between any two non consecutive particles
 dt = 0.001;
 iter = 10000;
 
-position = zeros((dt*iter),2);
-velocity = zeros((dt*iter),2);
-kinetic = zeros((dt*iter),2);
-potential = zeros((dt*iter),2);
-tot_E = zeros((dt*iter),2);
+position = zeros((dt*iter));
+velocity = zeros((dt*iter));
+kinetic = zeros((dt*iter));
+potential = zeros((dt*iter));
+tot_E = zeros((dt*iter));
+time = zeros(dt*iter);
+
 %% initialize position
 
  x = 0;
